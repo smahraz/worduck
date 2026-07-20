@@ -20,6 +20,25 @@ class PlaceHolder{
 		}
 };
 
+class ConstPlaceHolder: public PlaceHolder{
+	std::string str;
+	public:
+		ConstPlaceHolder(std::string str): str(str){}
+
+		ConstPlaceHolder& operator++() override{
+			cursor++;
+			return *this;
+		}
+
+		operator std::string() const override{
+			return str;
+		}
+
+		operator bool() override{
+			return cursor == 0;
+		}
+};
+
 template <typename T>
 class SetPlaceHolder: public PlaceHolder{
 	std::vector<T> set;
@@ -53,7 +72,7 @@ class RangePlaceHolder: public PlaceHolder{
 	public:
 		RangePlaceHolder(unsigned int start, unsigned int end){
 			this->start = start;
-			this->end = end;
+			this->end = end + 1;
 		}
 
 		RangePlaceHolder& operator++() override{
@@ -70,6 +89,10 @@ class RangePlaceHolder: public PlaceHolder{
 		}
 };
 
+// class GroupPlaceHolder: public PlaceHolder{
+// 	std::vector<PlaceHolder *> ph;
+// }
+
 class Generator{
 	std::vector<PlaceHolder*> placeHolders;
 
@@ -79,6 +102,8 @@ class Generator{
 			for (PlaceHolder* p: placeHolders)
 				delete p;
 		}
+
+		Generator(std::vector<PlaceHolder*> ph):placeHolders(ph){}
 
 		void append(PlaceHolder* p){
 			placeHolders.push_back(p);
@@ -95,6 +120,7 @@ class Generator{
 		Generator& operator++(){
 			for (int i = placeHolders.size() - 1; i >= 0; i--)
 			{
+				++(*placeHolders[i]);
 				if (*placeHolders[i] == false)
 				{
 					if (i == 0)
@@ -102,7 +128,6 @@ class Generator{
 					placeHolders[i]->resetCursor();
 				}
 				else{
-					++(*placeHolders[i]);
 					break;
 				}
 			}
@@ -115,17 +140,3 @@ class Generator{
 			return *placeHolders[0];
 		}
 };
-
-
-
-int main(){
-	Generator gn;
-	
-	gn.append(new SetPlaceHolder<std::string>({"alex", "jacob", "eren"}));
-	gn.append(new RangePlaceHolder(2000, 2026));
-
-	while (gn){
-		std::cout << gn.string() << std::endl;
-		++gn;
-	}
-}
