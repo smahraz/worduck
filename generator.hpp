@@ -110,11 +110,11 @@ class Generator{
 		}
 
 		std::string string() const{
-			std::stringstream ss;
+			std::string output;
 			for (const PlaceHolder* p: placeHolders){
-				ss << static_cast<std::string>(*p);
+				output += static_cast<std::string>(*p);
 			}
-			return ss.str();
+			return output;
 		}
 
 		Generator& operator++(){

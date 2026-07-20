@@ -27,6 +27,7 @@ PlaceHolder* getPlaceHolder(std::string s){
 	switch (s[0]) {
 		case 'd':
 			if (s.size() > 1 && s[1] == '{'){
+
 				return NULL;
 			}
 			return new RangePlaceHolder(0, 9);
@@ -51,10 +52,10 @@ std::vector<PlaceHolder*> parse(std::string s){
 		}
 		if (i == s.length() || validSpecifier.find(s[i]) == validSpecifier.end()){
 			freePlaceHolderVector(frame);
-			std::cerr << "Unknown specifier after %";
+			std::cerr << "Unknown specifier '%";
 			if (i < s.length())
 				std::cerr << s.at(i);
-			std::cerr << std::endl;
+			std::cerr << "'"<< std::endl;
 			return {};
 		}
 		PlaceHolder* ph = getPlaceHolder(s.substr(i));
