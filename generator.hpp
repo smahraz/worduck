@@ -1,7 +1,9 @@
+#include <cstddef>
+#include <cstring>
+#include <strings.h>
 #include <vector>
-#include <sstream>
-#include <iostream>
 #include <string>
+
 
 class PlaceHolder{
 	protected:
@@ -9,60 +11,16 @@ class PlaceHolder{
 
 
 	public:
-		virtual operator std::string() const = 0;
-		virtual operator bool() = 0;
+		char* buff = nullptr;
+		virtual operator bool() const = 0;
 		virtual PlaceHolder& operator++() = 0;
+		virtual size_t maxBuffSize() const = 0;
 
 		virtual ~PlaceHolder() = default;
 
 		void resetCursor(){
 			cursor = 0;
 		}
-};
-
-class ConstPlaceHolder: public PlaceHolder{
-	std::string str;
-	public:
-		ConstPlaceHolder(std::string str): str(str){}
-
-		ConstPlaceHolder& operator++() override{
-			cursor++;
-			return *this;
-		}
-
-		operator std::string() const override{
-			return str;
-		}
-
-		operator bool() override{
-			return cursor == 0;
-		}
-};
-
-template <typename T>
-class SetPlaceHolder: public PlaceHolder{
-	std::vector<T> set;
-	int max;
-
-
-	public:
-		SetPlaceHolder(std::vector<T> set): set(set){
-			max = set.size();
-		}
-
-		SetPlaceHolder& operator++() override{
-			++cursor;
-			return *this;
-		}
-
-		operator std::string() const override{
-			return {set[cursor]};
-		}
-
-		operator bool() override{
-			return cursor < max;
-		}
-
 };
 
 class RangePlaceHolder: public PlaceHolder{
@@ -73,70 +31,79 @@ class RangePlaceHolder: public PlaceHolder{
 		RangePlaceHolder(unsigned int start, unsigned int end){
 			this->start = start;
 			this->end = end + 1;
+
+			size_t buffSize = std::to_string(end).length() + 1;
+			buff = new char[buffSize]();
+			strcpy(buff, std::to_string(start + cursor).c_str());
 		}
 
-		RangePlaceHolder& operator++() override{
+		virtual RangePlaceHolder& operator++() override{
 			++cursor;
+			strcpy(buff, std::to_string(start + cursor).c_str());
 			return *this;
 		}
 
-		operator std::string() const override{
-			return std::to_string(cursor + start);
+		size_t maxBuffSize() const override{
+			return std::to_string(end).length();
 		}
 
-		operator bool() override{
+		operator bool() const override{
 			return start + cursor < end;
 		}
-};
 
-// class GroupPlaceHolder: public PlaceHolder{
-// 	std::vector<PlaceHolder *> ph;
-// }
+		~RangePlaceHolder()
+		{
+			delete[] buff;
+		}
+};
 
 class Generator{
 	std::vector<PlaceHolder*> placeHolders;
 
+	void updateBuff() const{
+		buff[0] = '\0';
+		for (const PlaceHolder* p: placeHolders)
+			strcat(buff, p->buff);
+	}
 
 	public:
-		~Generator(){
+		char *buff = nullptr;
+
+		Generator(std::vector<PlaceHolder*> placeHolders): placeHolders(placeHolders){
+			size_t size = 0;
+			for (const PlaceHolder* p: placeHolders)
+				size += p->maxBuffSize();
+			buff = new char[size]();
+			
+			if (buff == nullptr)
+				return;
 			for (PlaceHolder* p: placeHolders)
-				delete p;
+				strcat(buff, p->buff);
 		}
 
-		Generator(std::vector<PlaceHolder*> ph):placeHolders(ph){}
-
-		void append(PlaceHolder* p){
-			placeHolders.push_back(p);
+		operator bool () const {
+			return static_cast<bool>(*placeHolders[0]);
 		}
 
-		std::string string() const{
-			std::string output;
-			for (const PlaceHolder* p: placeHolders){
-				output += static_cast<std::string>(*p);
-			}
-			return output;
-		}
-
-		Generator& operator++(){
+		size_t operator++(int){
+			// current place holder.
 			for (int i = placeHolders.size() - 1; i >= 0; i--)
 			{
-				++(*placeHolders[i]);
-				if (*placeHolders[i] == false)
-				{
+				if (*placeHolders[i] == false){
 					if (i == 0)
 						break;
 					placeHolders[i]->resetCursor();
 				}
 				else{
+					++(*placeHolders[i]);
+					updateBuff();
 					break;
 				}
 			}
-			return *this;
+			return 0;
 		}
 
-		operator bool() const {
-			if (placeHolders.size() == 0)
-				return false;
-			return *placeHolders[0];
+		~Generator(){
+			delete[] buff;
 		}
 };
