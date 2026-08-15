@@ -5,6 +5,9 @@
 #include <string>
 
 
+using u64 = unsigned long long;
+
+
 class PlaceHolder{
 	protected:
 		long cursor = 0;
@@ -16,8 +19,19 @@ class PlaceHolder{
 		virtual PlaceHolder& operator++() = 0;
 		virtual size_t maxBuffSize() const = 0;
     virtual void reset() = 0;
+    virtual u64 comboCount() const = 0;
 
 		virtual ~PlaceHolder() = default;
+    static u64 power(u64 base, u64 exp){
+      if (exp == 0)
+        return 1;
+      u64 result = base;
+      while (exp - 1){
+        result *= base;
+        exp--;
+      }
+      return result;
+    }
 };
 
 class RangePlaceHolder: public PlaceHolder{
@@ -27,14 +41,14 @@ class RangePlaceHolder: public PlaceHolder{
 	public:
 		RangePlaceHolder(unsigned int start, unsigned int end){
 			this->start = start;
-			this->end = end + 1;
+			this->end = end;
 
 			size_t buffSize = std::to_string(end).length() + 1;
 			buff = new char[buffSize]();
 			strcpy(buff, std::to_string(start + cursor).c_str());
 		}
 
-		virtual RangePlaceHolder& operator++() override{
+		RangePlaceHolder& operator++() override{
 			++cursor;
 			strcpy(buff, std::to_string(start + cursor).c_str());
 			return *this;
@@ -45,7 +59,7 @@ class RangePlaceHolder: public PlaceHolder{
 		}
 
 		operator bool() const override{
-			return start + cursor < end;
+			return start + cursor <= end;
 		}
 
 		~RangePlaceHolder()
@@ -55,6 +69,10 @@ class RangePlaceHolder: public PlaceHolder{
 
     void reset() override{
       cursor = 0;
+    }
+
+    u64 comboCount() const override{
+      return end - start + 1;
     }
 };
 
@@ -108,6 +126,10 @@ class SetPlaceHolder: public PlaceHolder{
 
     ~SetPlaceHolder(){
       delete[] buff;
+    }
+
+    u64 comboCount() const override{
+      return power(charSet.size(), size); 
     }
 
 };
