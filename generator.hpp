@@ -15,12 +15,9 @@ class PlaceHolder{
 		virtual operator bool() const = 0;
 		virtual PlaceHolder& operator++() = 0;
 		virtual size_t maxBuffSize() const = 0;
+    virtual void reset() = 0;
 
 		virtual ~PlaceHolder() = default;
-
-		void resetCursor(){
-			cursor = 0;
-		}
 };
 
 class RangePlaceHolder: public PlaceHolder{
@@ -55,6 +52,64 @@ class RangePlaceHolder: public PlaceHolder{
 		{
 			delete[] buff;
 		}
+
+    void reset() override{
+      cursor = 0;
+    }
+};
+
+class SetPlaceHolder: public PlaceHolder{
+  std::vector<char> charSet;
+  std::vector<short> indexSet;
+  unsigned int size;
+
+  public:
+    SetPlaceHolder(std::vector<char> set): charSet(set){}
+
+    SetPlaceHolder(std::vector<char> set, unsigned size){
+      charSet = set;
+      this->size = size;
+      buff = new char[size + 1];
+      memset(buff, charSet[0], size);
+      buff[size] = '\0';
+      indexSet = std::vector<short>(size, 0);
+    }
+
+    SetPlaceHolder& operator++() override{
+       for (int i= size - 1; i >= 0; i--){
+         indexSet[i]++;
+         if (indexSet[i] >= charSet.size()){
+           if (i == 0)
+             break;
+           indexSet[i] = 0;
+           buff[i] = charSet[0];
+           continue;
+         }
+         else{
+           buff[i] = charSet[indexSet[i]];
+         }
+         break;
+       }
+       return *this;
+    } 
+
+    size_t maxBuffSize() const override{
+      return size;
+    }
+
+    void reset() override{
+      indexSet = std::vector<short>(size, 0);
+      memset(buff, charSet[0], size);
+    }
+
+    operator bool() const override{
+      return indexSet[0] < charSet.size();
+    }
+
+    ~SetPlaceHolder(){
+      delete[] buff;
+    }
+
 };
 
 class Generator{
@@ -92,7 +147,7 @@ class Generator{
 				if (*placeHolders[i] == false){
 					if (i == 0)
 						break;
-					placeHolders[i]->resetCursor();
+					placeHolders[i]->reset();
 				}
 				else{
 					++(*placeHolders[i]);
