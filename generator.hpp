@@ -166,13 +166,13 @@ class Generator{
 			// current place holder.
 			for (int i = placeHolders.size() - 1; i >= 0; i--)
 			{
+				++(*placeHolders[i]);
 				if (*placeHolders[i] == false){
 					if (i == 0)
 						break;
 					placeHolders[i]->reset();
 				}
 				else{
-					++(*placeHolders[i]);
 					updateBuff();
 					break;
 				}
