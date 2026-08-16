@@ -18,10 +18,15 @@ class PlaceHolder{
 		virtual operator bool() const = 0;
 		virtual PlaceHolder& operator++() = 0;
 		virtual size_t maxBuffSize() const = 0;
-    virtual void reset() = 0;
     virtual u64 comboCount() const = 0;
 
 		virtual ~PlaceHolder() = default;
+
+    
+    virtual void reset(){
+      cursor = 0;
+    }
+
     static u64 power(u64 base, u64 exp){
       if (exp == 0)
         return 1;
@@ -66,10 +71,6 @@ class RangePlaceHolder: public PlaceHolder{
 		{
 			delete[] buff;
 		}
-
-    void reset() override{
-      cursor = 0;
-    }
 
     u64 comboCount() const override{
       return end - start + 1;
@@ -132,6 +133,38 @@ class SetPlaceHolder: public PlaceHolder{
       return power(charSet.size(), size); 
     }
 
+};
+
+class ConstPlaceHolder: public PlaceHolder{
+  unsigned int size;
+
+  public:
+    ConstPlaceHolder(const std::string str){
+      size = str.length();
+      buff = new char[size + 1];
+      strcpy(buff, str.c_str());
+    }
+
+    ~ConstPlaceHolder(){
+      delete[] buff;
+    }
+
+    u64 comboCount() const override{
+      return 1; 
+    }
+
+    operator bool() const override{
+      return cursor == 0;
+    }
+
+    size_t maxBuffSize() const override{
+      return size;
+    }
+
+    ConstPlaceHolder& operator++() override{
+      cursor++;
+      return *this;
+    }
 };
 
 class Generator{

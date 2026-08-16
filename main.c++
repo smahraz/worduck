@@ -10,7 +10,9 @@ int main(void){
 	std::vector<PlaceHolder*> placeHolders = {
 		// new RangePlaceHolder(1, 100),
 		// new RangePlaceHolder(1, 100),
-    new SetPlaceHolder(NUMBER_SET, 8),
+    new SetPlaceHolder(NUMBER_SET, 2),
+    new ConstPlaceHolder("Alex"),
+    new SetPlaceHolder(NUMBER_SET, 1),
 	};
 
 
