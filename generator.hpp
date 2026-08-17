@@ -1,9 +1,8 @@
 #include <cstddef>
 #include <cstring>
-#include <strings.h>
 #include <vector>
 #include <string>
-
+#include <array>
 
 using u64 = unsigned long long;
 
@@ -11,7 +10,6 @@ using u64 = unsigned long long;
 class PlaceHolder{
 	protected:
 		long cursor = 0;
-
 
 	public:
 		char* buff = nullptr;
@@ -40,27 +38,33 @@ class PlaceHolder{
 };
 
 class RangePlaceHolder: public PlaceHolder{
-	unsigned int start;
-	unsigned int end;
+  protected:
+    unsigned int start;
+    unsigned int end;
+    char size;
+
+    virtual void updateBuff(){
+			strcpy(buff, std::to_string(start + cursor).c_str());
+    }
 
 	public:
 		RangePlaceHolder(unsigned int start, unsigned int end){
 			this->start = start;
 			this->end = end;
+			size = std::to_string(end).length();
 
-			size_t buffSize = std::to_string(end).length() + 1;
-			buff = new char[buffSize]();
-			strcpy(buff, std::to_string(start + cursor).c_str());
+			buff = new char[size + 1]();
+      updateBuff();
 		}
 
-		RangePlaceHolder& operator++() override{
+		virtual RangePlaceHolder& operator++() override{
 			++cursor;
-			strcpy(buff, std::to_string(start + cursor).c_str());
+      updateBuff();
 			return *this;
 		}
 
 		size_t maxBuffSize() const override{
-			return std::to_string(end).length();
+      return size;
 		}
 
 		operator bool() const override{
@@ -76,6 +80,30 @@ class RangePlaceHolder: public PlaceHolder{
       return end - start + 1;
     }
 };
+
+class PaddedRangePlaceHolder: public RangePlaceHolder{
+  void updateBuff() override{
+    std::string output = std::to_string(start + cursor);
+    output = std::string(size - output.length(), '0') + output;
+    strcpy(buff, output.c_str());
+  }
+
+  public:
+
+    PaddedRangePlaceHolder(unsigned int start, unsigned int end): RangePlaceHolder(start, end){
+      updateBuff();
+    }
+    PaddedRangePlaceHolder& operator++() override{
+      ++cursor;
+      std::string output = std::to_string(start + cursor);
+      output = std::string(size - output.length(), '0') + output;
+      strcpy(buff, output.c_str());
+      return *this;
+    }
+
+
+};
+
 
 class SetPlaceHolder: public PlaceHolder{
   std::vector<char> charSet;
@@ -216,4 +244,41 @@ class Generator{
 		~Generator(){
 			delete[] buff;
 		}
+};
+
+
+
+const std::vector<char> NUMBER_SET {
+  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+};
+
+const std::vector<char> LOWER_SET{
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+  'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+  'u', 'v', 'w', 'x', 'y', 'z'
+};
+
+const std::vector<char> UPPER_SET{
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+  'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+  'U', 'V', 'W', 'X', 'Y', 'Z'
+};
+
+const std::vector<char> ALPHANUMERIC_SET{
+  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+  'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+  'u', 'v', 'w', 'x', 'y', 'z',
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+  'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+  'U', 'V', 'W', 'X', 'Y', 'Z'
+};
+
+const std::vector<char> UPPER_LOWER_SET{
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+  'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+  'u', 'v', 'w', 'x', 'y', 'z',
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+  'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+  'U', 'V', 'W', 'X', 'Y', 'Z'
 };
