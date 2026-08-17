@@ -18,9 +18,10 @@ class PlaceHolder{
 		virtual size_t maxBuffSize() const = 0;
     virtual u64 comboCount() const = 0;
 
-		virtual ~PlaceHolder() = default;
+		virtual ~PlaceHolder(){
+      delete[] buff;
+    };
 
-    
     virtual void reset(){
       cursor = 0;
     }
@@ -69,11 +70,6 @@ class RangePlaceHolder: public PlaceHolder{
 
 		operator bool() const override{
 			return start + cursor <= end;
-		}
-
-		~RangePlaceHolder()
-		{
-			delete[] buff;
 		}
 
     u64 comboCount() const override{
@@ -153,10 +149,6 @@ class SetPlaceHolder: public PlaceHolder{
       return indexSet[0] < charSet.size();
     }
 
-    ~SetPlaceHolder(){
-      delete[] buff;
-    }
-
     u64 comboCount() const override{
       return power(charSet.size(), size); 
     }
@@ -171,10 +163,6 @@ class ConstPlaceHolder: public PlaceHolder{
       size = str.length();
       buff = new char[size + 1];
       strcpy(buff, str.c_str());
-    }
-
-    ~ConstPlaceHolder(){
-      delete[] buff;
     }
 
     u64 comboCount() const override{
