@@ -211,7 +211,7 @@ class Generator{
 			size_t size = 0;
 			for (const PlaceHolder* p: placeHolders)
 				size += p->maxBuffSize();
-			buff = new char[size]();
+			buff = new char[size + 1](0);
 			
 			if (buff == nullptr)
 				return;
