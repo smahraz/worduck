@@ -2,10 +2,14 @@
 #include <cstring>
 #include <vector>
 #include <string>
-#include <array>
 
 using u64 = unsigned long long;
 
+
+struct start_end{
+  size_t start;
+  size_t end;
+};
 
 class PlaceHolder{
 	protected:
@@ -107,9 +111,7 @@ class SetPlaceHolder: public PlaceHolder{
   unsigned int size;
 
   public:
-    SetPlaceHolder(std::vector<char> set): charSet(set){}
-
-    SetPlaceHolder(std::vector<char> set, unsigned size){
+    SetPlaceHolder(std::vector<char> set, unsigned size = 1){
       charSet = set;
       this->size = size;
       buff = new char[size + 1];
